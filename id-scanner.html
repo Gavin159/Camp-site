@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Escanear C.I.</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 20px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #007BFF;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin: 10px 0;
+    }
+
+    #camera-container {
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      margin: auto;
+    }
+
+    video {
+      width: 100%;
+      border: 1px solid #ccc;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 80%;
+      height: 50%;
+      transform: translate(-50%, -50%);
+      border: 3px dashed #fff;
+      border-radius: 10px;
+      pointer-events: none;
+    }
+
+    #snap {
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <button id="start-camera">Escanear C.I.</button>
+  <div id="camera-container" style="display:none;">
+    <video id="video" autoplay></video>
+    <div class="overlay"></div>
+    <button id="snap">Tomar Foto</button>
+  </div>
+  <canvas id="canvas" style="display:none;"></canvas>
+
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js/dist/tesseract.min.js"></script>
+  <script>
+    const startCameraButton = document.getElementById('start-camera');
+    const cameraContainer = document.getElementById('camera-container');
+    const video = document.getElementById('video');
+    const snapButton = document.getElementById('snap');
+    const canvas = document.getElementById('canvas');
+    const context = canvas.getContext('2d');
+
+    // Start the camera
+    startCameraButton.addEventListener('click', () => {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then((stream) => {
+          video.srcObject = stream;
+          cameraContainer.style.display = 'block';
+          startCameraButton.style.display = 'none';
+        })
+        .catch((err) => console.error('Error accessing camera:', err));
+    });
+
+    // Take a snapshot
+    snapButton.addEventListener('click', () => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Stop the camera
+      const stream = video.srcObject;
+      const tracks = stream.getTracks();
+      tracks.forEach(track => track.stop());
+
+      cameraContainer.style.display = 'none';
+      startCameraButton.style.display = 'block';
+
+      // Perform OCR on the captured image
+      performOCR(canvas);
+    });
+
+    function performOCR(canvas) {
+      const image = canvas.toDataURL('image/png');
+
+      Tesseract.recognize(image, 'eng', {
+        logger: (info) => console.log(info) // Log progress
+      }).then(({ data: { text } }) => {
+        console.log('Extracted Text:', text);
+
+        // Extract name and date of birth
+        const name = extractName(text);
+        const dob = extractDateOfBirth(text);
+
+        alert(`Name: ${name}\nDate of Birth: ${dob}`);
+      }).catch((err) => console.error('OCR Error:', err));
+    }
+
+    function extractName(text) {
+      // Regex to find "Name: John Doe" or similar
+      const nameMatch = text.match(/Name:?\s*(.+)/i);
+      return nameMatch ? nameMatch[1].trim() : 'Not Found';
+    }
+
+    function extractDateOfBirth(text) {
+      // Regex for common date formats (MM/DD/YYYY, DD/MM/YYYY)
+      const dobMatch = text.match(/\b\d{1,2}\/\d{1,2}\/\d{4}\b/);
+      return dobMatch ? dobMatch[0] : 'Not Found';
+    }
+  </script>
+</body>
+</html>
