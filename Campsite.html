@@ -158,12 +158,6 @@
             <label for="birthdate">Fecha de Nacimiento:</label>
             <input type="text" id="birthdate" name="birthdate" pattern="\d{1,2}/\d{1,2}/\d{4}" placeholder="DD/MM/AAAA" required>
 
-            <!-- Link to ID Scanner -->
-            <div>
-                <p>¿No tienes tu información? Usa el escáner:</p>
-                <button type="button" onclick="window.open('id-scanner.html', '_blank')">Abrir Escáner de C.I.</button>
-            </div>
-
             <div class="radio-group">
                 <label>Genero:</label>
                 <input type="radio" name="genero" id="hombre" value="Hombre"><label for="hombre">Hombre</label>
@@ -193,6 +187,8 @@
     
             <label for="pastorCode">Código de Pastor (6 dígitos):</label>
             <input type="text" id="pastorCode" name="pastorCode" pattern="\d{6}" placeholder="Ej. 123456" required>
+
+            <button type="button" onclick="window.location.href='id-scanner.html'">Escanear C.I.</button>
     
             <h2>Firma Padre/Madre</h2>
             <div class="signature-container">
@@ -256,9 +252,6 @@
             document.getElementById('registrationSection').style.display = 'block';
         }
     </script>
-    
-</body>
-</html>
     
 </body>
 </html>
